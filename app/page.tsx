@@ -1,18 +1,4 @@
-import { headers } from "next/headers";
-
-interface Article {
-  title: string;
-  description: string;
-  link: string;
-  publisher: string;
-  pubDate: string;
-}
-
-interface NewsData {
-  articles: Record<string, Article[]>;
-  generatedAt: string;
-  error?: string;
-}
+import { fetchNews } from "@/lib/fetchNews";
 
 const CATEGORY_COLORS: Record<string, string> = {
   토지보상: "#1F497D",
@@ -20,24 +6,12 @@ const CATEGORY_COLORS: Record<string, string> = {
   무단점유: "#B71C1C",
 };
 
-async function getNews(): Promise<NewsData> {
-  try {
-    const headersList = await headers();
-    const host = headersList.get("host") ?? "localhost:3000";
-    const protocol = host.startsWith("localhost") ? "http" : "https";
-    const res = await fetch(`${protocol}://${host}/api/news`, { cache: "no-store" });
-    return res.json();
-  } catch {
-    return { articles: {}, generatedAt: new Date().toISOString(), error: "데이터를 불러오지 못했습니다." };
-  }
-}
-
 export default async function Page() {
-  const data = await getNews();
+  const articles = await fetchNews();
   const now = new Date();
   const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
   const dateStr = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 (${weekdays[now.getDay()]})`;
-  const total = Object.values(data.articles).reduce((s, v) => s + v.length, 0);
+  const total = Object.values(articles).reduce((s, v) => s + v.length, 0);
 
   return (
     <main style={{ maxWidth: 800, margin: "0 auto", padding: "24px 16px" }}>
@@ -48,37 +22,37 @@ export default async function Page() {
       </div>
 
       <div style={{ background: "white", border: "1px solid #ddd", borderTop: "none", borderRadius: "0 0 12px 12px", padding: 24 }}>
-        {data.error && (
-          <p style={{ color: "red", textAlign: "center" }}>{data.error}</p>
-        )}
-
         {/* 핵심 요약 */}
         <h2 style={{ color: "#1F497D", fontSize: 16, borderBottom: "2px solid #1F497D", paddingBottom: 6 }}>■ 핵심 요약</h2>
-        <table style={{ borderCollapse: "collapse", marginBottom: 8, width: "100%" }}>
-          <thead>
-            <tr style={{ background: "#f0f4f8" }}>
-              <th style={{ padding: "6px 16px", textAlign: "left", fontSize: 13 }}>카테고리</th>
-              <th style={{ padding: "6px 16px", textAlign: "left", fontSize: 13 }}>건수</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.entries(data.articles).map(([cat, items]) => (
-              <tr key={cat}>
-                <td style={{ padding: "5px 16px", fontSize: 13 }}>{cat}</td>
-                <td style={{ padding: "5px 16px", fontSize: 13, fontWeight: "bold" }}>{items.length}건</td>
+        {total === 0 ? (
+          <p style={{ color: "#888", fontSize: 13 }}>해당 기간 내 관련 기사가 없습니다.</p>
+        ) : (
+          <table style={{ borderCollapse: "collapse", marginBottom: 8, width: "100%" }}>
+            <thead>
+              <tr style={{ background: "#f0f4f8" }}>
+                <th style={{ padding: "6px 16px", textAlign: "left", fontSize: 13 }}>카테고리</th>
+                <th style={{ padding: "6px 16px", textAlign: "left", fontSize: 13 }}>건수</th>
               </tr>
-            ))}
-            <tr style={{ background: "#e8f0fe" }}>
-              <td style={{ padding: "5px 16px", fontSize: 13, fontWeight: "bold" }}>합계</td>
-              <td style={{ padding: "5px 16px", fontSize: 13, fontWeight: "bold" }}>{total}건</td>
-            </tr>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {Object.entries(articles).map(([cat, items]) => (
+                <tr key={cat}>
+                  <td style={{ padding: "5px 16px", fontSize: 13 }}>{cat}</td>
+                  <td style={{ padding: "5px 16px", fontSize: 13, fontWeight: "bold" }}>{items.length}건</td>
+                </tr>
+              ))}
+              <tr style={{ background: "#e8f0fe" }}>
+                <td style={{ padding: "5px 16px", fontSize: 13, fontWeight: "bold" }}>합계</td>
+                <td style={{ padding: "5px 16px", fontSize: 13, fontWeight: "bold" }}>{total}건</td>
+              </tr>
+            </tbody>
+          </table>
+        )}
 
         <hr style={{ border: "none", borderTop: "1px solid #ddd", margin: "20px 0" }} />
 
         {/* 카테고리별 기사 */}
-        {Object.entries(data.articles).map(([cat, items], idx) => (
+        {Object.entries(articles).map(([cat, items], idx) => (
           <div key={cat}>
             <h2 style={{ color: CATEGORY_COLORS[cat] ?? "#1F497D", fontSize: 16, borderBottom: `2px solid ${CATEGORY_COLORS[cat] ?? "#1F497D"}`, paddingBottom: 6 }}>
               ■ {idx + 1}. {cat}
