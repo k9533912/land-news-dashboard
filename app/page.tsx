@@ -18,7 +18,7 @@ export default async function Page() {
       {/* 헤더 */}
       <div style={{ background: "#1F497D", color: "white", borderRadius: "12px 12px 0 0", padding: "24px", textAlign: "center" }}>
         <h1 style={{ margin: 0, fontSize: 22, fontWeight: "bold" }}>한국도로공사 토지부문 언론동향</h1>
-        <p style={{ margin: "8px 0 0", fontSize: 13, opacity: 0.85 }}>기준일: {dateStr} &nbsp;|&nbsp; 보고자: 김재웅</p>
+        <p style={{ margin: "8px 0 0", fontSize: 13, opacity: 0.85 }}>기준일: {dateStr} &nbsp;|&nbsp; 보고자: 토지공간실</p>
       </div>
 
       <div style={{ background: "white", border: "1px solid #ddd", borderTop: "none", borderRadius: "0 0 12px 12px", padding: 24 }}>
